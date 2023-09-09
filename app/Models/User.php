@@ -11,6 +11,8 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\UserRegistrationNotification;
+use App\Notifications\ForgotPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -66,6 +68,8 @@ class User extends Authenticatable
         $this->email_verified_at = now();
         $this->save();
 
+        $this->notify(new UserRegistrationNotification($this));
+
         return response()->json(['data' => new UserResource($this), 'message' => 'User registered successfully', 'status' => 200], 200);
     }
 
@@ -84,5 +88,38 @@ class User extends Authenticatable
         }
 
         return response()->json(['data' => null, 'message' => 'Invalid details', 'status' => 401], 401);
+    }
+
+    public function forgotPassword(Request $request){
+        $randomToken = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        $token = generateUniqueCode($randomToken, PasswordReset::class);
+        $user = $this->getUserByEmail($request->email);
+        $passwordReset = PasswordReset::updateOrCreate(
+            [
+                'email'         => $request->email,
+            ],
+            [
+                'token'         => $token,
+                'created_at'    => now()
+            ]
+        );
+        $user->notify(new ForgotPasswordNotification($user, $token));
+        return response()->json(['data' => $passwordReset, 'message' => 'Code has been sent to your email, please verify.', 'status' => 200], 200);
+    }
+
+    public function resetPassword(Request $request){
+        $passwordReset = PasswordReset::where('token', $request->token)->first();
+        if($passwordReset){
+            $user = $this->getUserByEmail($passwordReset->email);
+            $user->password = Hash::make($request->password);
+            $user->update();
+
+            $passwordReset->delete();
+
+            return response()->json(['data' => new UserResource($user), 'message' => 'Your password has been reset.', 'status' => 200], 200);
+        }else{
+            return response()->json(['data' => null, 'message' => 'Code is invalid.', 'status' => 401], 401);
+        }
+        
     }
 }

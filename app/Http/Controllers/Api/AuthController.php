@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\VerifyCodeRequest;
+use App\Http\Requests\ResetPasswordRequest;
 
 class AuthController extends Controller
 {
@@ -26,6 +29,30 @@ class AuthController extends Controller
     public function login(LoginUserRequest $request){
         try {
             return $this->user->loginUser($request);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occured, ' . $e->getMessage(), 'status' => 401], 401);
+        }
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request){
+        try {
+            return $this->user->forgotPassword($request);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occured, ' . $e->getMessage(), 'status' => 401], 401);
+        }
+    }
+
+    public function verifyCode(VerifyCodeRequest $request){
+        try {
+            return response()->json(['message' => 'Code has been verified.', 'status' => 200], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occured, ' . $e->getMessage(), 'status' => 401], 401);
+        }
+    }
+
+    public function resetPassword(ResetPasswordRequest $request){
+        try {
+            return $this->user->resetPassword($request);
         } catch (\Exception $e) {
             return response()->json(['message' => 'An error occured, ' . $e->getMessage(), 'status' => 401], 401);
         }
