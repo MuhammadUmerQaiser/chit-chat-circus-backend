@@ -122,4 +122,12 @@ class User extends Authenticatable
         }
         
     }
+
+
+    public function getAllUser($request){
+        $userId = auth()->user()->id;
+        $data = $this->where('id', '!=', $userId)->get();
+        $data = UserResource::collection($data);
+        return response()->json(['data' => $data, 'status' => 200], 200);
+    }
 }
