@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,4 +29,7 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 
 Route::middleware(['auth:api'])->group(function () {
     Route::get('/get-all-user', [UserController::class, 'getAllUser'])->name('get-all-user');
+
+    Route::post('/chat', [ChatController::class, 'message'])->name('chat');
+    Route::get('/get-all-conversation', [ChatController::class, 'getAllConversation'])->name('get-all-conversation');
 });
